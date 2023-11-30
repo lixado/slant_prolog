@@ -1,0 +1,71 @@
+make_nodes(Game, [['', '', '', BotRight, Value] | Nodes], 0, 0, Height, Width):- % only in the first up left square
+    nth0(0, Game, Row), % traverse the 2d list
+    nth0(0, Row, Value), % get this square value
+
+    printnl("first square"),
+
+    NextRowIndex is 1,
+    NextColIndex is 1,
+
+    %nth0(NextRowIndex, Game, RowBelow), % traverse the 2d list
+    %nth0(ColIndex, RowBelow, BotRight), % get the bot right slant value
+    make_nodes(Game, Nodes, RowIndex, NextColIndex, Height, Width). % go to next ColIndex
+
+make_nodes(Game, [['', '', '', BotRight, Value] | Nodes], 0, ColIndex, Height, Width):- % all elements in the first row because rowIndex = 0
+    RowIndex is 0,
+
+    nth0(RowIndex, Game, Row), % traverse the 2d list
+    nth0(ColIndex, Row, Value), % get this square value
+
+    NextRowIndex is RowIndex + 1,
+    PreviousColIndex is ColIndex - 1,
+    NextColIndex is ColIndex + 1,
+    printnl("all elements with row index = 0"),
+
+    %nth0(NextRowIndex, Game, RowBelow), % traverse the 2d list
+    %nth0(ColIndex, RowBelow, BotRight), % get the bot right slant value
+    %nth0(PreviousColIndex, RowBelow, BotLeft), % get the bot left
+
+    make_nodes(Game, Nodes, RowIndex, NextColIndex, Height, Width).
+
+
+# not working
+make_nodes(_, [], RealHeight, Width, Height, Width):- RealHeight is Height * 2 + 2. % done because we have reached the last piece
+
+make_nodes(Game, [['t', 't', 't', 't', Value] | Nodes], Height, Width, Height, Width):- % last row last column
+    NextColIndex is ColIndex + 1,
+    NextRowIndex is Height + 2,
+
+    nth0(RowIndex, Game, Row), % traverse the 2d list
+    nth0(ColIndex, Row, Value), % get this square value
+
+    printnl("last row last col"),
+    %printnl(Height),
+    make_nodes(Game, Nodes, NextRowIndex, Width, Height, Width).
+
+make_nodes(Game, [['t', 't', 't', 't', Value] | Nodes], RowIndex, Width, Height, Width):- % last col of every row
+    %NextRowIndex is RowIndex + 1,
+    %PreviousRowIndex is RowIndex - 1,
+    NextSquareRowIndex is RowIndex + 2,
+    printnl("last col of every row"),
+
+    nth0(RowIndex, Game, Row), % traverse the 2d list
+    nth0(Width, Row, Value), % get this square value
+
+    %nth0(NextRowIndex, Game, RowBelow), % traverse the 2d list
+    %nth0(ColIndex, RowBelow, BotRight), % get the bot right slant value
+    %nth0(PreviousColIndex, RowBelow, BotLeft), % get the bot left
+
+
+    make_nodes(Game, Nodes, NextSquareRowIndex, 0, Height, Width).
+
+make_nodes(Game, [['t', 't', 't', 't', Value] | Nodes], RowIndex, ColIndex, Height, Width):- % runs anywhere else
+    NextColIndex is ColIndex + 1,
+
+    nth0(RowIndex, Game, Row), % traverse the 2d list
+    nth0(ColIndex, Row, Value), % get this square value
+
+    printnl("everywhere else"),
+    %printnl(Height),
+    make_nodes(Game, Nodes, RowIndex, NextColIndex, Height, Width).
+
