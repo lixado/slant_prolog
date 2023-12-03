@@ -1,3 +1,4 @@
-- langford better and 10 digits with 5 5
 - main program need to merge node results because some nodes will be solved and some will not,
     this can be done by the same way to write back to file since we need to reemsamble the game
+- when bruteforcing need to check for loops using a list of connected nodes
+- fix make_nodes width remove repeated code 

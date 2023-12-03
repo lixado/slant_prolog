@@ -75,3 +75,49 @@ _ 2 _ _
   ]
 ]
 ```
+
+### Nodes data scruture =  [Upleft slant, Upright slant, Bot left slant, Bot right slant, Square value]
+```
+[ [ ['','','',x,'_'],
+    ['','',x,x,'0'],
+    ['','',x,x,'_'],
+    ['','',x,'','_'],
+    ['',x,'',x,'_'],
+    [x,x,x,x,'_'],
+    [x,x,x,x,'_'],
+    [x,'',x,'','2'],
+    ['',x,'',x,'_'],
+    [x,x,x,x,'_'],
+    [x,x,x,x,'3'],
+    [x,'',x,'','_'],
+    ['',x,'','','_'],
+    [x,x,'','','2'],
+    [x,x,'','','_'],
+    [x,'','','','_']
+  ],
+  [ ['','','',x,'_'],
+    ['','',x,x,'0'],
+    ['','',x,x,'2'],
+    ['','',x,'','_'],
+    ['',x,'',x,'1'],
+    [x,x,x,x,'_'],
+    [x,x,x,x,'_'],
+    [x,'',x,'','_'],
+    ['',x,'',x,'_'],
+    [x,x,x,x,'3'],
+    [x,x,x,x,'_'],
+    [x,'',x,'','1'],
+    ['',x,'','','_'],
+    [x,x,'','','_'],
+    [x,x,'','','2'],
+    [x,'','','','_']
+  ]
+]
+```
+
+### Static solve nodes using pattern matching
+
+Simple example, if any 4 is in the game fill the slants around it pointing towards it
+```
+solve_node([_, _, _, _, '4'], ['\\', '/', '//', '\\', '4']).
+```

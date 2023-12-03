@@ -82,7 +82,45 @@ getElement(Game, RowIndex, ColIndex, Element, _, _):- % get the element otherwis
     nth0(ColIndex, Row, Element). % get the element
 
 
-make_nodes(_, [], LastRowIndex, _, Height, Width):- LastRowIndex is Height * 2 + 2. % done when row is non existent
+%
+%   Static solve Node = [Upleft slant, Upright slant, Bot left slant, Bot right slant, Square value]
+%
+% static solve for zeros 
+solve_node(['x', UpRight, BotLeft, BotRight, '0'], Solved):- solve_node(['/', UpRight, BotLeft, BotRight, '0'], Solved). % recursion until no pattern matches
+solve_node([UpLeft, 'x', BotLeft, BotRight, '0'], Solved):- solve_node([UpLeft, '\\', BotLeft, BotRight, '0'], Solved).
+solve_node([UpLeft, UpRight, 'x', BotRight, '0'], Solved):- solve_node([UpLeft, UpRight, '\\', BotRight, '0'], Solved).
+solve_node([UpLeft, UpRight, BotLeft, 'x', '0'], Solved):- solve_node([UpLeft, UpRight, BotLeft, '/', '0'], Solved).
+% static solve for ones
+% corners
+solve_node(['', '', '', 'x', '1'], ['', '', '', '\\', '1']). % up left corner
+solve_node(['', '', 'x', '', '1'], ['', '', '/', '', '1']). % up right corner
+solve_node(['', 'x', '', '', '1'], ['', '/', '', '', '1']). % bot left corner
+solve_node(['x', '', '', '', '1'], ['\\', '', '', '', '1']). % bot right corner
+% already have a slant pointed at them, do this later for cases with already filled slants
+%solve_node(['\\', 'x', '', '', '1'], ['\\', '\', '', '', '1']).
+% static solve for twos
+solve_node(['', '', 'x', 'x', '2'], ['', '', '/', '\\', '2']). % first row
+solve_node(['x', 'x', '', '', '2'], ['\\', '/', '', '', '2']). % last row
+solve_node(['', 'x', '', 'x', '2'], ['', '/', '', '\\', '2']). % left side
+solve_node(['x', '', 'x', '', '2'], ['\\', '', '/', '', '2']). % right side
+% static solve threes
+% static solve four
+solve_node([_, _, _, _, '4'], ['\\', '/', '//', '\\', '4']).
+solve_node(X, X). % if cant solve anymore return the the node
+
+
+%
+%   Merge node results
+%
+xor(X, '/'):- member(X, '/'). % return / if the list contains it
+xor(X, '\\'):- member(X, '\\'). % return \ if the list contains it
+xor(_, 'x').
+
+
+%
+%   Make nodes and solve them
+%
+make_nodes(_, [], LastRowIndex, _, Height, _):- LastRowIndex is Height * 2 + 2. % done when row is non existent
 
 make_nodes(Game, [SolvedNode | Nodes], RowIndex, Width, Height, Width):- % run on last col to go to next row
     getElement(Game, RowIndex, Width, Value, Height, Width),
@@ -101,7 +139,6 @@ make_nodes(Game, [SolvedNode | Nodes], RowIndex, Width, Height, Width):- % run o
     make_nodes(Game, Nodes, NextSquareRowIndex, 0, Height, Width).
 
 make_nodes(Game, [SolvedNode | Nodes], RowIndex, ColIndex, Height, Width):- % run else
-    %nth0(RowIndex, Game, Row), % this row
     getElement(Game, RowIndex, ColIndex, Value, Height, Width),
 
     SlantTopRowIndex is RowIndex - 1,
@@ -116,62 +153,51 @@ make_nodes(Game, [SolvedNode | Nodes], RowIndex, ColIndex, Height, Width):- % ru
 
     solve_node([TopLeft, TopRight, BotLeft, BotRight, Value], SolvedNode),
 
-
     NextColIndex is ColIndex + 1, % go to next col
     make_nodes(Game, Nodes, RowIndex, NextColIndex, Height, Width).
 
 
 
-%
-%   Static solve Node = [Upleft slant, Upright slant, Bot left slant, Bot right slant, Square value]
-%
+make_list_of_slants(Nodes, [], LastRowIndex, _, Height, _):- LastRowIndex is Height * 2 + 1. % done when row is non existent
 
-% static solve for zeros 
-solve_node(['x', UpRight, BotLeft, BotRight, '0'], Solved):- solve_node(['/', UpRight, BotLeft, BotRight, '0'], Solved). % recursion until no pattern matches
-solve_node([UpLeft, 'x', BotLeft, BotRight, '0'], Solved):- solve_node([UpLeft, '\\', BotLeft, BotRight, '0'], Solved).
-solve_node([UpLeft, UpRight, 'x', BotRight, '0'], Solved):- solve_node([UpLeft, UpRight, '\\', BotRight, '0'], Solved).
-solve_node([UpLeft, UpRight, BotLeft, 'x', '0'], Solved):- solve_node([UpLeft, UpRight, BotLeft, '/', '0'], Solved).
+make_list_of_slants(Nodes, Game, RowIndex, Width, Height, Width):- % run on last col to go to next row
+    NextSquareRowIndex is RowIndex + 2, % go next row
+    make_list_of_slants(Nodes, Game, NextSquareRowIndex, 0, Height, Width).
 
-% static solve for ones
-% corners
-solve_node(['', '', '', 'x', '1'], ['', '', '', '\\', '1']). % up left corner
-solve_node(['', '', 'x', '', '1'], ['', '', '/', '', '1']). % up right corner
-solve_node(['', 'x', '', '', '1'], ['', '/', '', '', '1']). % bot left corner
-solve_node(['x', '', '', '', '1'], ['\\', '', '', '', '1']). % bot right corner
-% already have a slant pointed at them, do this later for cases with already filled slants
-%solve_node(['\\', 'x', '', '', '1'], ['\\', '\', '', '', '1']).
+make_list_of_slants(Nodes, [Slant | Game], RowIndex, ColIndex, Height, Width):- % run else
+    NodeUpLeftIndex is ColIndex + ((RowIndex - 1) * Width),
+    NodeUpRightIndex is NodeUpLeftIndex + 1,
+    NodeBotLeftIndex is NodeUpLeftIndex + Width,
+    NodeBotRightIndex is NodeBotLeftIndex + 1,
+    % this creates infinite loop
 
-% static solve for twos
-solve_node(['', '', 'x', 'x', '2'], ['', '', '/', '\\', '2']). % first row
-solve_node(['x', 'x', '', '', '2'], ['\\', '/', '', '', '2']). % last row
-solve_node(['', 'x', '', 'x', '2'], ['', '/', '', '\\', '2']). % left side
-solve_node(['x', '', 'x', '', '2'], ['\\', '', '//', '', '2']). % right side
+    nth0(NodeUpLeftIndex, Nodes, NodeUpLeft),
+    nth0(0, NodeUpLeft, UpLeftSlant),
 
-% static solve threes
+    nth0(NodeUpRightIndex, Nodes, NodeUpRight),
+    nth0(1, NodeUpRight, UpRightSlant),
 
-% static solve four
-solve_node([_, _, _, _, '4'], ['\\', '/', '//', '\\', '4']).
+    nth0(NodeBotLeftIndex, Nodes, NodeBotLeft),
+    nth0(0, NodeBotLeft, BotLeftSlant),
 
-solve_node(X, X). % if cant solve anymore return the the node
+    nth0(NodeBotRightIndex, Nodes, NodeBotRight),
+    nth0(0, NodeBotRight, BotRightSlant),
 
+    xor([UpLeftSlant, UpRightSlant, BotLeftSlant, BotRightSlant], Slant), % xor the results
 
-
-
-%
-%   Solve game
-%
-%solve(Game, [Node | Nodes], Height, Width, Solved):- 
-%    solve_node(Node),
-%    solve(Game, [Node | Nodes], Height, Width, Solved).
+    NextColIndex is ColIndex + 1, % go to next col
+    make_list_of_slants(Nodes, Game, RowIndex, NextColIndex, Height, Width).
 
 
 %
 %   Iterate for every game and solve each
 %
 iterate_games([], []). % done
-iterate_games([[[Width, Height] | Game] | Games], [Nodes | Results]):- 
+iterate_games([[[Width, Height] | Game] | Games], [SlantList | Results]):- 
     make_nodes(Game, Nodes, 0, 0, Height, Width),
-    %solve(Game, Nodes, Height, Width, Solved),
+    printnl("Nodes:"),
+    printnl(Nodes),
+    make_list_of_slants(Nodes, SlantList, 1, 0, Height, Width),
     iterate_games(Games, Results).
 
 
@@ -183,9 +209,9 @@ run :-
     read_file_lines("puzzle_unsolved.txt", [_ | Rest]),
     split_games(Rest, [], Games),
     printnl(Games),
-    iterate_games(Games, Nodes),
-    printnl("Nodes:"),
-    printnl(Nodes),
+    iterate_games(Games, SolvedGames),
+    printnl("SolvedGames:"),
+    printnl(SolvedGames),
     %write_file_lines("puzzle_solved.txt", Games), % need to fix to handle 2d list
     printnl("Ending program...").
 
